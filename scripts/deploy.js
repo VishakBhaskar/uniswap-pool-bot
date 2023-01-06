@@ -7,20 +7,20 @@
 const hre = require("hardhat");
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+  // const currentTimestampInSeconds = Math.round(Date.now() / 1000);
+  // const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
+  // const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
 
-  const lockedAmount = hre.ethers.utils.parseEther("1");
+  // const lockedAmount = hre.ethers.utils.parseEther("1");
+  const swapRouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
+  const nftManagerAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
 
-  const Lock = await hre.ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  const Interact = await hre.ethers.getContractFactory("Interact");
+  const interact = await Interact.deploy(nftManagerAddress, swapRouterAddress);
 
-  await lock.deployed();
+  await interact.deployed();
 
-  console.log(
-    `Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
-  );
+  console.log(`Interact contract deployed to ${interact.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
