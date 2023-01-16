@@ -19,6 +19,15 @@ QUERY = `{
         owner
         tickLower
         tickUpper
+        token0 {
+          id
+          symbol
+        }
+        token1
+        {
+          id
+          symbol
+        }
         depositedToken0
         depositedToken1
     }
@@ -47,7 +56,7 @@ POSITION_QUERY = `{
 }`;
 
 POOL_QUERY = `{
-  pool(id: "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8") {
+  pool(id: "0x3416cf6c708da44db2624d63ea0aaef7113527c6") {
     tick
     token0 {
       symbol
@@ -91,11 +100,11 @@ async function main() {
     provider
   );
 
-  positions.map((p) => {
-    NonfungiblePositionManagerContract.positions(p.id).then((res) =>
-      console.log("result  : ", res)
-    );
-  });
+  // positions.map((p) => {
+  //   NonfungiblePositionManagerContract.positions(p.id).then((res) =>
+  //     console.log("result  : ", res)
+  //   );
+  // });
 
   const posData = await NonfungiblePositionManagerContract.positions(
     positions[0].id
