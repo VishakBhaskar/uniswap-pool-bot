@@ -84,6 +84,8 @@ contract Manage is IERC721Receiver {
     function enter(uint256 _tokenId) public {
         address idOwner = nonfungiblePositionManager.ownerOf(_tokenId);
 
+        require(msg.sender == idOwner, "Only owner can call this function");
+
         nonfungiblePositionManager.safeTransferFrom(
             idOwner,
             address(this),

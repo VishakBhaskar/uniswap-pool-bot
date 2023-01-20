@@ -9,7 +9,7 @@ const SUBGRAPH_URL =
 
 require("dotenv").config();
 
-const { interact } = require("../address.js");
+const { manage } = require("../address.js");
 
 const ALCHEMY_URL = process.env.ALCHEMY_URL;
 
@@ -22,42 +22,21 @@ const positionManagerAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
 // User holding the positions:
 const WHALE = "0xFf04026530372eE46aA122dacB8093218051f3cD";
 
-QUERY = `{
-    positions(where : {
-        owner: "0xFf04026530372eE46aA122dacB8093218051f3cD",
-        pool : "0x3416cf6c708da44db2624d63ea0aaef7113527c6"
-    }) {
-        id
-        owner
-        tickLower
-        tickUpper
-        token0 {
-          id
-          symbol
-        }
-        token1
-        {
-          id
-          symbol
-        }
-        depositedToken0
-        depositedToken1
-    }
-}`;
+const id = 393909;
 
 async function main() {
-  const result = await axios.post(SUBGRAPH_URL, { query: QUERY });
+  // const result = await axios.post(SUBGRAPH_URL, { query: QUERY });
 
-  const positions = result.data.data.positions;
+  // const positions = result.data.data.positions;
 
-  console.log("Positions: ", positions);
+  // console.log("Positions: ", positions);
 
   const nftManagerContract = await ethers.getContractAt(
     "INonfungiblePositionManager",
     positionManagerAddress
   );
 
-  const interactContract = await ethers.getContractAt("Interact", interact);
+  const manageContract = await ethers.getContractAt("Manage", manage);
 
   // Impersonating the holder to work with the
   // forked mainnet and sending test funds
@@ -78,21 +57,18 @@ async function main() {
   // We transfer the NFT of the first position to the
   // deployed 'Interact' Contract here :
 
-  const tx = await nftManagerContract
-    .connect(whale)
-    ["safeTransferFrom(address,address,uint256)"](
-      whale.address,
-      interact,
-      positions[0].id
-    );
+  await nftManagerContract.connect(whale).approve(manageContract.address, id);
+
+  const tx = await manageContract.connect(whale).enter(id);
+  // const tx = await nftManagerContract
+  //   .connect(whale)
+  //   ["safeTransferFrom(address,address,uint256)"](
+  //     whale.address,
+  //     manage,
+  //     positions[0].id
+  //   );
 
   console.log("Transaction : ", tx);
-
-  const tx2 = await interactContract
-    .connect(whale)
-    .retrieveNFT(positions[0].id);
-
-  console.log("Second tx : ", tx2);
 }
 
 main().catch((error) => {

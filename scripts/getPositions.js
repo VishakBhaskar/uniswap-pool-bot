@@ -16,6 +16,7 @@ QUERY = `{
         pool : "0x3416cf6c708da44db2624d63ea0aaef7113527c6"
     }) {
         id
+        liquidity
         owner
         tickLower
         tickUpper
@@ -100,11 +101,11 @@ async function main() {
     provider
   );
 
-  // positions.map((p) => {
-  //   NonfungiblePositionManagerContract.positions(p.id).then((res) =>
-  //     console.log("result  : ", res)
-  //   );
-  // });
+  positions.map((p) => {
+    NonfungiblePositionManagerContract.positions(p.id).then((res) =>
+      console.log("result  : ", res)
+    );
+  });
 
   const posData = await NonfungiblePositionManagerContract.positions(
     positions[0].id
