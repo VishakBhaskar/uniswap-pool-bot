@@ -1,14 +1,13 @@
 const { expect } = require("chai");
 const { ethers, network } = require("hardhat");
 
-// const { manage } = require("../address.js");
-
 const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 
 const USDC_WHALE = "0x203520F4ec42Ea39b03F62B20e20Cf17DB5fdfA7";
 const USDT_WHALE = "0x187E3534f461d7C59a7d6899a983A5305b48f93F";
 
+const swapRouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 const positionManagerAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
 
 const TEN_K = ethers.utils.parseUnits("10000", 6);
@@ -22,14 +21,25 @@ describe("Test the automation", () => {
   let usdtwhale;
   let user;
   let manageContract;
+  let swapcoin;
   // const tokenId = 406004; // TokenId of a position
 
   before(async () => {
     usdc = await ethers.getContractAt("IERC20", USDC);
     usdt = await ethers.getContractAt("IERC20", USDT);
 
+    const SwapCoin = await hre.ethers.getContractFactory("SwapCoin");
+    const _swapcoin = await SwapCoin.deploy(swapRouterAddress);
+
+    await _swapcoin.deployed();
+
+    swapcoin = _swapcoin;
+
     const Manage = await hre.ethers.getContractFactory("Manage");
-    const manage = await Manage.deploy(positionManagerAddress);
+    const manage = await Manage.deploy(
+      positionManagerAddress,
+      swapcoin.address
+    );
 
     await manage.deployed();
 
@@ -81,77 +91,4 @@ describe("Test the automation", () => {
     console.log("Final User USDC Bal : ", await usdc.balanceOf(user.address));
     console.log("Final User USDT Bal : ", await usdt.balanceOf(user.address));
   });
-
-  //   it("Sends token to Interact Contract", async () => {
-  //     const nftManagerContract = await ethers.getContractAt(
-  //       "INonfungiblePositionManager",
-  //       positionManagerAddress
-  //     );
-
-  //     // const interactContract = await ethers.getContractAt("Interact", interact);
-
-  //     await expect(
-  //       nftManagerContract
-  //         .connect(whale)
-  //         ["safeTransferFrom(address,address,uint256)"](
-  //           whale.address,
-  //           interact,
-  //           tokenId
-  //         )
-  //     ).not.to.be.reverted;
-  //   });
-
-  // it("Exits a position after sending token", async () => {
-  //   const nftManagerContract = await ethers.getContractAt(
-  //     "INonfungiblePositionManager",
-  //     positionManagerAddress
-  //   );
-
-  //   const interactContract = await ethers.getContractAt("Interact", interact);
-
-  // await expect(
-  //   nftManagerContract
-  //     .connect(whale)
-  //     ["safeTransferFrom(address,address,uint256)"](
-  //       whale.address,
-  //       interact,
-  //       tokenId
-  //     )
-  // ).not.to.be.reverted;
-  //   await nftManagerContract
-  //     .connect(whale)
-  //     ["safeTransferFrom(address,address,uint256)"](
-  //       whale.address,
-  //       interact,
-  //       tokenId
-  //     );
-
-  //   let whaleBal = await usdc.balanceOf(WHALE);
-
-  //   console.log("Initial USDC Balance : ", whaleBal);
-
-  //   await interactContract.connect(whale).decreaseLiquidityInHalf(tokenId);
-
-  //   let newWhaleBal = await usdc.balanceOf(WHALE);
-  //   console.log("Final USDC Balance : ", newWhaleBal);
-  // });
-
-  //   it("unlock account", async () => {
-  //     const amount = 10 ** 3;
-
-  //     let whaleBal = await usdc.balanceOf(USDC_WHALE);
-
-  //     console.log(
-  //       "USDC balance of whale : ",
-  //       ethers.utils.formatUnits(whaleBal, 6)
-  //     );
-  //     expect(await usdc.balanceOf(USDC_WHALE)).to.gte(amount);
-
-  //     await usdc.connect(whale).transfer(accounts[0].address, amount);
-
-  //     console.log(
-  //       "USDC balance of account",
-  //       await usdc.balanceOf(accounts[0].address)
-  //     );
-  //   });
 });

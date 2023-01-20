@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./libraries/TransferHelper.sol";
 import "./interfaces/INonfungiblePositionManager.sol";
 import "./base/LiquidityManagement.sol";
+import "./ISwapCoin.sol";
 
 contract Manage is IERC721Receiver {
     address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -18,6 +19,7 @@ contract Manage is IERC721Receiver {
     uint256 id;
 
     INonfungiblePositionManager public immutable nonfungiblePositionManager;
+    ISwapCoin public immutable swapcoin;
 
     /// @notice Represents the deposit of an NFT
     struct Deposit {
@@ -37,8 +39,12 @@ contract Manage is IERC721Receiver {
     /// @dev deposits[tokenId] => Deposit
     mapping(uint256 => Deposit) public deposits;
 
-    constructor(INonfungiblePositionManager _nonfungiblePositionManager) {
+    constructor(
+        INonfungiblePositionManager _nonfungiblePositionManager,
+        ISwapCoin _swapcoin
+    ) {
         nonfungiblePositionManager = _nonfungiblePositionManager;
+        swapcoin = _swapcoin;
     }
 
     // Implementing `onERC721Received` so this contract can receive custody of erc721 tokens
@@ -325,9 +331,14 @@ contract Manage is IERC721Receiver {
 
         address token0 = deposits[tokenId].token0;
         address token1 = deposits[tokenId].token1;
+
+        //Swap token 1
+        TransferHelper.safeApprove(USDT, address(swapcoin), amount1);
+        uint256 amountOut = swapcoin.swapExactInputSingle(amount1);
+        uint256 finalAmount = amountOut + amount0;
         // send collected fees to owner
-        TransferHelper.safeTransfer(token0, owner, amount0);
-        TransferHelper.safeTransfer(token1, owner, amount1);
+        TransferHelper.safeTransfer(token0, owner, finalAmount);
+        // TransferHelper.safeTransfer(token1, owner, amount1);
     }
 
     /// @notice Transfers the NFT to the owner

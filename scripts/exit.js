@@ -1,3 +1,5 @@
+// This script queries the position and exits it if there is an
+// Impermanent loss of more than 30%
 require("dotenv").config();
 const { ethers } = require("hardhat");
 const ALCHEMY_URL = process.env.ALCHEMY_URL;

@@ -5,14 +5,13 @@ const {
   abi: INonFungiblePositionManagerABI,
 } = require("@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json");
 
-// const { manage } = require("../address.js");
-
 const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 
 const USDC_WHALE = "0x203520F4ec42Ea39b03F62B20e20Cf17DB5fdfA7";
 const USDT_WHALE = "0x187E3534f461d7C59a7d6899a983A5305b48f93F";
 
+const swapRouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 const positionManagerAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
 
 const TEN_K = ethers.utils.parseUnits("10000", 6);
@@ -35,8 +34,18 @@ describe("Mints and transfers the NFT", () => {
     usdc = await ethers.getContractAt("IERC20", USDC);
     usdt = await ethers.getContractAt("IERC20", USDT);
 
+    const SwapCoin = await hre.ethers.getContractFactory("SwapCoin");
+    const _swapcoin = await SwapCoin.deploy(swapRouterAddress);
+
+    await _swapcoin.deployed();
+
+    swapcoin = _swapcoin;
+
     const Manage = await hre.ethers.getContractFactory("Manage");
-    const manage = await Manage.deploy(positionManagerAddress);
+    const manage = await Manage.deploy(
+      positionManagerAddress,
+      swapcoin.address
+    );
 
     await manage.deployed();
 
@@ -95,12 +104,6 @@ describe("Mints and transfers the NFT", () => {
   it("Retrieve NFT, send to other user, exit position", async () => {
     await manageContract.connect(user).retrieveNFT(id);
 
-    // await nftManager.connect(user).approve(user2.address, id);
-
-    // const initOwner = await nftManager.ownerOf(id);
-    // console.log("Initial owner : ", initOwner);
-    // console.log("User1  : ", user.address);
-
     await nftManager
       .connect(user)
       ["safeTransferFrom(address,address,uint256)"](
@@ -113,20 +116,6 @@ describe("Mints and transfers the NFT", () => {
 
     await manageContract.connect(user2).enter(id);
 
-    // const finalOwner = await nftManager.ownerOf(id);
-    // console.log("Final owner : ", finalOwner);
-    // console.log("User2 : ", user2.address);
-
-    // await nftManager
-    //   .connect(user2)
-    //   ["safeTransferFrom(address,address,uint256)"](
-    //     user2.address,
-    //     manageContract.address,
-    //     id
-    //   );
-
-    // await nftManager.connect(user2).approve(user2.address, id);
-
     console.log(
       "Initial User2 USDC Bal : ",
       await usdc.balanceOf(user2.address)
@@ -136,14 +125,6 @@ describe("Mints and transfers the NFT", () => {
       await usdt.balanceOf(user2.address)
     );
 
-    // const posData = await nftManager.connect(user).positions(id);
-
-    // console.log("Position Data : ", posData);
-    // console.log("User2 : ", user2);
-
-    // const posData = await nftManager.connect(user).positions(id);
-    // //
-    // console.log("Position Data : ", posData);
     await manageContract.connect(user2).decreaseFullLiquidity(id);
 
     console.log("Final User2 USDC Bal : ", await usdc.balanceOf(user2.address));

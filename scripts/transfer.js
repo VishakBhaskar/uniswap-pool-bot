@@ -1,5 +1,4 @@
-// This script queries all the active positions in a pool
-// and transfers all the NFTs to the 'Interact'
+// This script transfers the NFTs to the 'Manage'
 // Smart Contract
 const { ethers, network, hre } = require("hardhat");
 const axios = require("axios");
@@ -38,8 +37,6 @@ async function main() {
 
   const manageContract = await ethers.getContractAt("Manage", manage);
 
-  // Impersonating the holder to work with the
-  // forked mainnet and sending test funds
   await network.provider.request({
     method: "hardhat_impersonateAccount",
     params: [WHALE],
@@ -54,19 +51,12 @@ async function main() {
     value: ethers.utils.parseEther("50.0"), // Sends exactly 50.0 ether
   });
 
-  // We transfer the NFT of the first position to the
-  // deployed 'Interact' Contract here :
+  // We transfer the NFT to the
+  // deployed 'Manage' Contract here :
 
   await nftManagerContract.connect(whale).approve(manageContract.address, id);
 
   const tx = await manageContract.connect(whale).enter(id);
-  // const tx = await nftManagerContract
-  //   .connect(whale)
-  //   ["safeTransferFrom(address,address,uint256)"](
-  //     whale.address,
-  //     manage,
-  //     positions[0].id
-  //   );
 
   console.log("Transaction : ", tx);
 }
